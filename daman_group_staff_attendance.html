@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daman Group - Staff Attendance</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#f3f4f6;color:#111827}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef2f7}
+.login-box{width:390px;max-width:92%;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.12)}
+.logo{text-align:center;margin-bottom:30px}.logo h1{font-size:28px}.logo p{color:#6b7280;margin-top:7px}
+.form-group{margin-bottom:18px}.form-group label{display:block;font-weight:bold;margin-bottom:7px;font-size:14px}
+.form-group input{width:100%;padding:13px;border:1px solid #d1d5db;border-radius:7px;font-size:15px}
+.login-btn{width:100%;padding:13px;background:#2563eb;color:white;border:0;border-radius:7px;cursor:pointer;font-size:16px;font-weight:bold}
+.login-btn:hover{background:#1d4ed8}.login-error{display:none;color:#dc2626;text-align:center;margin-top:15px}.login-footer{text-align:center;color:#9ca3af;font-size:12px;margin-top:25px}
+#dashboard{display:none}header{background:#111827;color:white;padding:17px 25px}.header-inner{max-width:1450px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.header-title h1{font-size:23px}.header-title small{color:#cbd5e1}.user-area{display:flex;align-items:center;gap:10px}.logout-btn{background:#dc2626;color:white;border:0;padding:9px 14px;border-radius:6px;cursor:pointer}
+.container{max-width:1450px;margin:auto;padding:22px}.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin-bottom:20px}
+.card{background:white;padding:20px;border-radius:11px;box-shadow:0 2px 8px rgba(0,0,0,.07)}.card h3{font-size:13px;color:#6b7280;margin-bottom:10px}.card strong{font-size:28px}
+.controls{background:white;padding:17px;border-radius:10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+.controls input,.controls select,.controls button{padding:10px 12px;border-radius:6px;border:1px solid #d1d5db}.controls button{color:white;border:0;cursor:pointer;background:#2563eb}
+.green{background:#16a34a!important}.gray{background:#4b5563!important}.red{background:#dc2626!important}.orange{background:#ea580c!important}
+.table-box{background:white;border-radius:10px;overflow:auto;box-shadow:0 2px 8px rgba(0,0,0,.07)}table{width:100%;min-width:1050px;border-collapse:collapse}
+th,td{padding:13px;border-bottom:1px solid #e5e7eb;text-align:left}th{background:#f8fafc;font-size:13px}td{font-size:14px}
+.status{display:inline-block;padding:6px 10px;border-radius:20px;font-size:12px;font-weight:bold}.present{background:#dcfce7;color:#166534}.absent{background:#fee2e2;color:#991b1b}.half{background:#fef3c7;color:#92400e}.leave{background:#dbeafe;color:#1e40af}.notmarked{background:#e5e7eb;color:#374151}
+.action-btn{padding:7px 9px;border:0;border-radius:5px;color:white;cursor:pointer;margin:2px}.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);align-items:center;justify-content:center;z-index:999}
+.modal-box{width:450px;max-width:92%;background:white;border-radius:12px;padding:25px}.modal-box h2{margin-bottom:20px}.modal-group{margin-bottom:15px}.modal-group label{display:block;font-weight:bold;margin-bottom:6px}.modal-group input{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:6px}
+.modal-buttons{display:flex;gap:10px;margin-top:20px}.modal-buttons button{padding:11px 15px;border:0;border-radius:6px;color:white;cursor:pointer}.save{background:#2563eb}.cancel{background:#4b5563}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.cards{grid-template-columns:1fr 1fr}.container{padding:10px}header{padding:15px}.header-title h1{font-size:18px}}
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+<div class="login-box">
+<div class="logo"><h1>Daman Group</h1><p>Staff Attendance System</p></div>
+<form onsubmit="login(event)">
+<div class="form-group"><label>Username</label><input type="text" id="loginUsername" placeholder="Enter username" required></div>
+<div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter password" required></div>
+<button type="submit" class="login-btn">Login</button>
+<div id="loginError" class="login-error">Invalid username or password</div>
+</form>
+<div class="login-footer">© 2026 Daman Group</div>
+</div>
+</div>
+
+<div id="dashboard">
+<header><div class="header-inner">
+<div class="header-title"><h1>Daman Group</h1><small>Staff Attendance Management</small></div>
+<div class="user-area"><span id="loggedUser">Admin</span><button class="logout-btn" onclick="logout()">Logout</button></div>
+</div></header>
+
+<div class="container">
+<div class="cards">
+<div class="card"><h3>Total Staff</h3><strong id="totalStaff">0</strong></div>
+<div class="card"><h3>Present</h3><strong id="presentCount">0</strong></div>
+<div class="card"><h3>Absent</h3><strong id="absentCount">0</strong></div>
+<div class="card"><h3>Half Day</h3><strong id="halfCount">0</strong></div>
+<div class="card"><h3>Leave</h3><strong id="leaveCount">0</strong></div>
+</div>
+
+<div class="controls">
+<input type="date" id="attendanceDate" onchange="renderAttendance()">
+<input type="text" id="search" placeholder="Search staff..." onkeyup="renderAttendance()">
+<select id="departmentFilter" onchange="renderAttendance()"><option value="">All Departments</option></select>
+<button onclick="openStaffModal()">+ Add Staff</button>
+<button class="green" onclick="exportCSV()">Export CSV</button>
+<button class="gray" onclick="clearAttendance()">Clear Attendance</button>
+</div>
+
+<div class="table-box">
+<table>
+<thead><tr><th>Employee ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Status</th><th>In Time</th><th>Out Time</th><th>Remarks</th><th>Action</th></tr></thead>
+<tbody id="attendanceTable"></tbody>
+</table>
+</div>
+</div>
+</div>
+
+<div class="modal" id="staffModal">
+<div class="modal-box">
+<h2>Add New Staff</h2>
+<div class="modal-group"><label>Employee ID</label><input id="employeeId" placeholder="EMP001"></div>
+<div class="modal-group"><label>Staff Name</label><input id="employeeName" placeholder="Enter staff name"></div>
+<div class="modal-group"><label>Department</label><input id="employeeDepartment" placeholder="Operations"></div>
+<div class="modal-group"><label>Designation</label><input id="employeeDesignation" placeholder="Executive"></div>
+<div class="modal-buttons"><button class="save" onclick="saveStaff()">Save Staff</button><button class="cancel" onclick="closeStaffModal()">Cancel</button></div>
+</div>
+</div>
+
+<script>
+const ADMIN_USERNAME="admin",ADMIN_PASSWORD="admin123";
+
+function login(event){
+event.preventDefault();
+const username=document.getElementById("loginUsername").value.trim();
+const password=document.getElementById("loginPassword").value;
+if(username===ADMIN_USERNAME&&password===ADMIN_PASSWORD){
+localStorage.setItem("loggedIn","true");localStorage.setItem("loggedUser",username);showDashboard();
+}else document.getElementById("loginError").style.display="block";
+}
+function logout(){localStorage.removeItem("loggedIn");localStorage.removeItem("loggedUser");location.reload()}
+function showDashboard(){
+document.getElementById("loginPage").style.display="none";document.getElementById("dashboard").style.display="block";
+document.getElementById("loggedUser").innerText=localStorage.getItem("loggedUser")||"Admin";initialize();
+}
+
+let staff=JSON.parse(localStorage.getItem("damanStaff"))||[];
+let attendance=JSON.parse(localStorage.getItem("damanAttendance"))||[];
+
+if(staff.length===0){
+staff=[{id:"EMP001",name:"Rahul Kumar",department:"Operations",designation:"Executive"},{id:"EMP002",name:"Amit Kumar",department:"Accounts",designation:"Executive"}];saveStaff();
+}
+
+const today=new Date().toISOString().split("T")[0];
+document.getElementById("attendanceDate").value=today;
+
+function saveStaff(){localStorage.setItem("damanStaff",JSON.stringify(staff))}
+function saveAttendance(){localStorage.setItem("damanAttendance",JSON.stringify(attendance))}
+
+function loadDepartments(){
+const select=document.getElementById("departmentFilter");
+const departments=[...new Set(staff.map(s=>s.department))];
+select.innerHTML='<option value="">All Departments</option>';
+departments.forEach(d=>select.innerHTML+=`<option value="${d}">${d}</option>`);
+}
+
+function renderAttendance(){
+const date=document.getElementById("attendanceDate").value;
+const search=document.getElementById("search").value.toLowerCase();
+const department=document.getElementById("departmentFilter").value;
+const table=document.getElementById("attendanceTable");table.innerHTML="";
+staff.filter(e=>(e.name.toLowerCase().includes(search)||e.id.toLowerCase().includes(search))&&(department===""||e.department===department)).forEach(e=>{
+const record=attendance.find(x=>x.employeeId===e.id&&x.date===date);
+const status=record?record.status:"Not Marked";
+let cls="notmarked";if(status==="Present")cls="present";if(status==="Absent")cls="absent";if(status==="Half Day")cls="half";if(status==="Leave")cls="leave";
+table.innerHTML+=`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.department}</td><td>${e.designation}</td><td><span class="status ${cls}">${status}</span></td><td>${record?record.inTime||"-":"-"}</td><td>${record?record.outTime||"-":"-"}</td><td>${record?record.remarks||"-":"-"}</td><td>
+<button class="action-btn" style="background:#16a34a" onclick="markAttendance('${e.id}','Present')">P</button>
+<button class="action-btn" style="background:#dc2626" onclick="markAttendance('${e.id}','Absent')">A</button>
+<button class="action-btn" style="background:#ea580c" onclick="markAttendance('${e.id}','Half Day')">H</button>
+<button class="action-btn" style="background:#4b5563" onclick="markAttendance('${e.id}','Leave')">L</button>
+<button class="action-btn" style="background:#2563eb" onclick="editAttendance('${e.id}')">Edit</button>
+</td></tr>`;
+});
+updateDashboard();
+}
+
+function markAttendance(employeeId,status){
+const date=document.getElementById("attendanceDate").value;
+let record=attendance.find(x=>x.employeeId===employeeId&&x.date===date);
+if(!record){record={id:Date.now(),employeeId,date,status,inTime:status==="Present"?currentTime():"",outTime:"",remarks:""};attendance.push(record)}
+else{record.status=status;if(status==="Present"&&!record.inTime)record.inTime=currentTime()}
+saveAttendance();renderAttendance();
+}
+
+function editAttendance(employeeId){
+const date=document.getElementById("attendanceDate").value;
+const record=attendance.find(x=>x.employeeId===employeeId&&x.date===date);
+if(!record){alert("Please mark attendance first.");return}
+const inTime=prompt("In Time:",record.inTime||"");if(inTime===null)return;
+const outTime=prompt("Out Time:",record.outTime||"");if(outTime===null)return;
+const remarks=prompt("Remarks:",record.remarks||"");if(remarks===null)return;
+record.inTime=inTime;record.outTime=outTime;record.remarks=remarks;saveAttendance();renderAttendance();
+}
+
+function currentTime(){return new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",hour12:false})}
+
+function updateDashboard(){
+const date=document.getElementById("attendanceDate").value;
+const records=attendance.filter(x=>x.date===date);
+document.getElementById("totalStaff").innerText=staff.length;
+document.getElementById("presentCount").innerText=records.filter(x=>x.status==="Present").length;
+document.getElementById("absentCount").innerText=records.filter(x=>x.status==="Absent").length;
+document.getElementById("halfCount").innerText=records.filter(x=>x.status==="Half Day").length;
+document.getElementById("leaveCount").innerText=records.filter(x=>x.status==="Leave").length;
+}
+
+function openStaffModal(){document.getElementById("staffModal").style.display="flex"}
+function closeStaffModal(){document.getElementById("staffModal").style.display="none"}
+
+function saveStaff(){
+const id=document.getElementById("employeeId").value.trim();
+const name=document.getElementById("employeeName").value.trim();
+const department=document.getElementById("employeeDepartment").value.trim();
+const designation=document.getElementById("employeeDesignation").value.trim();
+if(!id||!name||!department||!designation){alert("Please fill all details.");return}
+if(staff.some(e=>e.id===id)){alert("Employee ID already exists.");return}
+staff.push({id,name,department,designation});saveStaff();closeStaffModal();
+["employeeId","employeeName","employeeDepartment","employeeDesignation"].forEach(id=>document.getElementById(id).value="");
+loadDepartments();renderAttendance();
+}
+
+function exportCSV(){
+const date=document.getElementById("attendanceDate").value;
+let csv="Employee ID,Name,Department,Designation,Date,Status,In Time,Out Time,Remarks\n";
+staff.forEach(e=>{
+const r=attendance.find(x=>x.employeeId===e.id&&x.date===date);
+csv+=[e.id,e.name,e.department,e.designation,date,r?r.status:"Not Marked",r?r.inTime:"",r?r.outTime:"",r?r.remarks:""].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")+"\n";
+});
+const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`Daman-Group-Attendance-${date}.csv`;link.click();URL.revokeObjectURL(url);
+}
+
+function clearAttendance(){
+if(!confirm("Delete ALL attendance records?"))return;
+attendance=[];saveAttendance();renderAttendance();
+}
+
+function initialize(){loadDepartments();renderAttendance()}
+
+if(localStorage.getItem("loggedIn")==="true")showDashboard();
+</script>
+</body>
+</html>
